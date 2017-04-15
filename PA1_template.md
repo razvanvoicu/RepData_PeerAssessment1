@@ -1,20 +1,11 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Razvan Voicu"
-output: 
-  html_document:
-    keep_md: true
-    self_contained: true
----
+# Reproducible Research: Peer Assessment 1
+Razvan Voicu  
 
-```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
-library(ggplot2)
-library(scales)
-library(Hmisc)
-```
+
 
 ### Load the data
-```{r, results='markup', warning=TRUE, message=TRUE}
+
+```r
 if(!file.exists('activity.csv')){
     unzip('activity.zip')
 }
@@ -24,76 +15,92 @@ data_set <- read.csv('activity.csv')
 -----
 
 ### Mean of the total number of steps taken per day
-```{r}
+
+```r
 steps_per_day <- tapply(data_set$steps, data_set$date, sum, na.rm=TRUE)
 ```
 
 ##### 1. Histogram of the total number of steps taken each day
-```{r}
+
+```r
 qplot(steps_per_day, xlab='Total steps per day', ylab='Frequency using binwith 500', binwidth=500)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 ##### 2. Mean and median number of steps per day
-```{r}
+
+```r
 steps_per_day_mean <- mean(steps_per_day)
 steps_per_day_median <- median(steps_per_day)
 ```
-* Mean: `r steps_per_day_mean`
-* Median:  `r steps_per_day_median`
+* Mean: 9354.2295082
+* Median:  10395
 
 -----
 
 ### Average daily activity pattern
-```{r}
+
+```r
 average_steps_per_time_tlock <- aggregate(x=list(meanSteps=data_set$steps), by=list(interval=data_set$interval), FUN=mean, na.rm=TRUE)
 ```
 
 ##### 1. Average step count as a time series plot
-```{r}
+
+```r
 ggplot(data=average_steps_per_time_tlock, aes(x=interval, y=meanSteps)) +
     geom_line() +
     xlab("5-minute interval") +
     ylab("average number of steps taken") 
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
 ##### 2. Maximum average number of steps per 5-minute interval
-```{r}
+
+```r
 max_steps <- which.max(average_steps_per_time_tlock$meanSteps)
 time_max_steps <-  gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", average_steps_per_time_tlock[max_steps,'interval'])
 ```
 
-* Most Steps at: `r time_max_steps`
+* Most Steps at: 8:35
 
 ----
 
 ### Impute missing values
 ##### 1. Total number of missing values in the data_set 
-```{r}
+
+```r
 missing_values_count <- length(which(is.na(data_set$steps)))
 ```
 
-* Number of missing values: `r missing_values_count`
+* Number of missing values: 2304
 
 ##### 2. New data_set that is equal to the original data_set but with the missing data filled in.
-```{r}
+
+```r
 imputed <- data_set
 imputed$steps <- impute(data_set$steps, fun=mean)
 ```
 
 
 ##### 3. Histogram of the total number of steps taken each day 
-```{r}
+
+```r
 steps_per_day_imputed <- tapply(imputed$steps, imputed$date, sum)
 qplot(steps_per_day_imputed, xlab='Total steps per day (Imputed)', ylab='Frequency using binwith 500', binwidth=500)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
 ##### Mean and median total number of steps taken per day. 
-```{r}
+
+```r
 mean_imputed <- mean(steps_per_day_imputed)
 median_imputed <- median(steps_per_day_imputed)
 ```
-* Mean (Imputed): `r mean_imputed`
-* Median (Imputed):  `r median_imputed`
+* Mean (Imputed): 1.0766189\times 10^{4}
+* Median (Imputed):  1.0766189\times 10^{4}
 
 
 ----
@@ -101,13 +108,15 @@ median_imputed <- median(steps_per_day_imputed)
 ### Differences in activity patterns between weekdays and weekends
 ##### 1. Create a new factor variable in the data_set with two levels ??? ???weekday??? and ???weekend??? indicating whether a given date is a weekday or weekend day.
 
-```{r}
+
+```r
 imputed$dateType <-  ifelse(as.POSIXlt(imputed$date)$wday %in% c(0,6), 'weekend', 'weekday')
 ```
 
 ##### 2. Panel plot containing a time series plot
 
-```{r}
+
+```r
 imputed_avg <- aggregate(steps ~ interval + dateType, data=imputed, mean)
 ggplot(imputed_avg, aes(interval, steps)) + 
     geom_line() + 
@@ -115,4 +124,6 @@ ggplot(imputed_avg, aes(interval, steps)) +
     xlab("5-minute interval") + 
     ylab("avarage number of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
